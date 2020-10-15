@@ -1,0 +1,9 @@
+### Editor ###
+.vscode/
+.ionide/
+.history/
+.idea
+
+### Project ###
+__pycache__/
+temp/
