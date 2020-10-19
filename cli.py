@@ -1,6 +1,7 @@
 from os import path
 import re
 import click
+import option
 
 
 @click.group()
@@ -17,53 +18,51 @@ def main():
 @click.option('--force', type=bool, is_flag=True)
 @click.option('--center_image', type=bool, is_flag=True)
 @click.option('--en_punctuation', type=bool, is_flag=True)
-def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool):
+@click.option('--katex_svg', type=bool, is_flag=True)
+def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_svg: bool):
     """
     Generate markdown by options.
     """
-    force = not not force
-    center_image = not not center_image
-    en_punctuation = not not en_punctuation
-
+    # =========
+    # read file
+    # =========
     if input_file == '':
         raise Exception('The input file name could not be empty.')
     elif not path.exists(input_file):
         raise Exception('The input file "{}" does not exist.'.format(input_file))
     elif not path.isfile(input_file):
         raise Exception('The input file "{}" is a directory.'.format(input_file))
-
     with open(input_file, 'r', encoding='utf-8') as fi:
-        # read
         content = fi.read()
 
-        # 1. center image
-        if center_image:
-            center_image_re = re.compile(r'!\[(.*?)\]\((.+?)\)')
-            content = center_image_re.sub(r'<div align="center"><img src="\2" alt="\1" /></div>', content)
+    # ===============
+    # do option parse
+    # ===============
 
-        # 2. english punctuation
-        if en_punctuation:
-            punctuations = [
-                ['，', ', '], ['。', '. '], ['、', ', '], ['：', ': '], ['；', '; '], ['？', '? '], ['！', '! '], ['—', '-'],
-                ['“', ' "'], ['”', '" '], ['（', ' ('], ['）', ') '], ['【', ' ['], ['】', '] '], ['《', ' <'], ['》', '> '],
-            ]
-            for k, v in punctuations:
-                content = re.sub(f' *' + k + f' *', v, content)
+    # 1. center image
+    center_image_option = option.CenterImageOption(center_image)
+    content = center_image_option.parse(content)
 
-        # new line and space
-        content = re.sub(f' \n', '\n', content)
-        content = re.sub(f'\n ', '\n', content)
+    # 2. english punctuation
+    en_punctuation_option = option.EnPunctuation(en_punctuation)
+    content = en_punctuation_option.parse(content)
 
-        # save
-        if output == '':
-            raise Exception('The output file name could not be empty.')
-        elif path.exists(output):
-            if not path.isfile(output):
-                raise Exception('The output file "{}" is a directory.'.format(output))
-            elif not force:
-                raise Exception('The output file "{}" has been existed, please rename or use --force flag.'.format(output))
-        with open(output, 'w+', encoding='utf-8') as fo:
-            fo.write(content)
+    # 3. katex svg
+    katex_svg_option = option.KatexSvgOption(katex_svg)
+    content = katex_svg_option.parse(content)
+
+    # ==========
+    # write file
+    # ==========
+    if output == '':
+        raise Exception('The output file name could not be empty.')
+    elif path.exists(output):
+        if not path.isfile(output):
+            raise Exception('The output file "{}" is a directory.'.format(output))
+        elif not force:
+            raise Exception('The output file "{}" has been existed, please rename or use --force flag.'.format(output))
+    with open(output, 'w+', encoding='utf-8') as fo:
+        fo.write(content)
 
 
 if __name__ == '__main__':
