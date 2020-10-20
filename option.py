@@ -49,21 +49,30 @@ class KatexImageOption:
         self.do_option: bool = not not do_option
 
     def parse(self, content: str) -> (str, str):
-        def sub_parse(content: str) -> str:
-            alt_katex = katex.strip(" \t\n$").replace('\n', ' ')  # alt
-            new_katex = alt_katex  # src
+        def sub_parse(content: str, *, is_block: bool = False) -> str:
+            # alt
+            alt_katex = katex.strip(" \t\n$").replace('\n', ' ')
+            # src
+            new_katex = ('\\large ' if is_block else '') + alt_katex
+            new_katex = new_katex.replace('\\R', '\\mathbb{R}').replace('\\N', '\\mathbb{N}').replace('\\Z', '\\mathbb{Z}').replace('\\C', '\\mathbb{C}')
+            new_katex = new_katex.replace('\\llbracket', '\u27E6').replace('\\rrbracket', '\u27E7')
+            new_katex = new_katex.replace('\\argmax', '\\arg\\!\\!\\max').replace('\\argmin', '\\arg\\!\\!\\min')
+            # \\
             if new_katex.count('\\\\') != 0:
                 new_katex = '\\begin{gathered} %s \\end{gathered}' % new_katex
+            # encodeURI
             new_katex = urllib.parse.quote(new_katex)
+
             return alt_katex, new_katex
 
         if self.do_option:
+
             # block
             equation_block_re = re.compile(r'((?<!\\)\$\$(?:.+?)(?<!\\)\$\$)', re.DOTALL)
             old_katexes = equation_block_re.findall(content)
             new_katexes = [katex for katex in old_katexes]
             for idx, katex in enumerate(new_katexes):
-                alt_katex, new_katex = sub_parse(katex)
+                alt_katex, new_katex = sub_parse(katex, is_block=True)
                 new_katexes[idx] = '<div align="center"><image alt="{}" src="https://math.now.sh?from={}" /></div>'.format(alt_katex, new_katex)
             for idx, old_katex in enumerate(old_katexes):
                 content = content.replace(old_katex, new_katexes[idx])
@@ -73,7 +82,7 @@ class KatexImageOption:
             old_katexes = equation_block_re.findall(content)
             new_katexes = [katex for katex in old_katexes]
             for idx, katex in enumerate(new_katexes):
-                alt_katex, new_katex = sub_parse(katex)
+                alt_katex, new_katex = sub_parse(katex, is_block=False)
                 new_katexes[idx] = '<image alt="{}" src="https://math.now.sh?inline={}" />'.format(alt_katex, new_katex)
             for idx, old_katex in enumerate(old_katexes):
                 content = content.replace(old_katex, new_katexes[idx])

@@ -6,3 +6,6 @@
 
 ### Project ###
 __pycache__/
+*.spec
+dist/
+build/
