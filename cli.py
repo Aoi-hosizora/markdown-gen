@@ -18,8 +18,8 @@ def main():
 @click.option('--force', type=bool, is_flag=True)
 @click.option('--center_image', type=bool, is_flag=True)
 @click.option('--en_punctuation', type=bool, is_flag=True)
-@click.option('--katex_svg', type=bool, is_flag=True)
-def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_svg: bool):
+@click.option('--katex_image', type=bool, is_flag=True)
+def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_image: bool):
     """
     Generate markdown by options.
     """
@@ -47,9 +47,9 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
     en_punctuation_option = option.EnPunctuation(en_punctuation)
     content = en_punctuation_option.parse(content)
 
-    # 3. katex svg
-    katex_svg_option = option.KatexSvgOption(katex_svg)
-    content = katex_svg_option.parse(content)
+    # 3. katex image
+    katex_image_option = option.KatexImageOption(katex_image)
+    content = katex_image_option.parse(content)
 
     # ==========
     # write file

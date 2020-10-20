@@ -1,4 +1,5 @@
 import re
+import urllib.parse
 
 
 class CenterImageOption:
@@ -12,7 +13,7 @@ class CenterImageOption:
     def parse(self, content: str) -> str:
         if self.do_option:
             center_image_re = re.compile(r'!\[(.*?)\]\((.+?)\)')
-            content = center_image_re.sub(r'<div align="center"><img src="\2" alt="\1" /></div>', content)
+            content = center_image_re.sub(r'<p align="center"><img src="\2" alt="\1" /></p>', content)
 
         return content
 
@@ -28,7 +29,7 @@ class EnPunctuation:
     def parse(self, content: str) -> str:
         if self.do_option:
             punctuations_1 = [['，', ', '], ['。', '. '], ['、', ', '], ['：', ': '], ['；', '; '], ['？', '? '], ['！', '! '], ['—', '-']]
-            punctuations_2 = [['“', ' "'], ['”', '" '], ['（', ' ('], ['）', ') '], ['【', ' ['], ['】', '] '], ['《', ' <'], ['》', '> ']]
+            punctuations_2 = [['“', ' "'], ['”', '" '], ['（', ' ('], ['）', ') '], ['【', ' \\['], ['】', '\\] '], ['《', ' <'], ['》', '> ']]
             for k, v in punctuations_1:
                 content = re.sub(f' *' + k + f' *', v, content)
             for k, v in punctuations_2:
@@ -39,16 +40,42 @@ class EnPunctuation:
         return content
 
 
-class KatexSvgOption:
+class KatexImageOption:
     """
-    Option for --katex_svg
+    Option for --katex_image
     """
 
     def __init__(self, do_option: bool):
         self.do_option: bool = not not do_option
 
-    def parse(self, content: str) -> str:
+    def parse(self, content: str) -> (str, str):
+        def sub_parse(content: str) -> str:
+            alt_katex = katex.strip(" \t\n$").replace('\n', ' ')  # alt
+            new_katex = alt_katex  # src
+            if new_katex.count('\\\\') != 0:
+                new_katex = '\\begin{gathered} %s \\end{gathered}' % new_katex
+            new_katex = urllib.parse.quote(new_katex)
+            return alt_katex, new_katex
+
         if self.do_option:
-            pass
+            # block
+            equation_block_re = re.compile(r'((?<!\\)\$\$(?:.+?)(?<!\\)\$\$)', re.DOTALL)
+            old_katexes = equation_block_re.findall(content)
+            new_katexes = [katex for katex in old_katexes]
+            for idx, katex in enumerate(new_katexes):
+                alt_katex, new_katex = sub_parse(katex)
+                new_katexes[idx] = '<div align="center"><image alt="{}" src="https://math.now.sh?from={}" /></div>'.format(alt_katex, new_katex)
+            for idx, old_katex in enumerate(old_katexes):
+                content = content.replace(old_katex, new_katexes[idx])
+
+            # inline
+            equation_block_re = re.compile(r'((?<!\\)\$.+?(?<!\\)\$)')
+            old_katexes = equation_block_re.findall(content)
+            new_katexes = [katex for katex in old_katexes]
+            for idx, katex in enumerate(new_katexes):
+                alt_katex, new_katex = sub_parse(katex)
+                new_katexes[idx] = '<image alt="{}" src="https://math.now.sh?inline={}" />'.format(alt_katex, new_katex)
+            for idx, old_katex in enumerate(old_katexes):
+                content = content.replace(old_katex, new_katexes[idx])
 
         return content
