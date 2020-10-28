@@ -16,12 +16,13 @@ def main():
 
 @main.command()
 @click.argument('input_file')
-@click.option('--output', '-o', type=str, required=True)
-@click.option('--force', type=bool, is_flag=True)
-@click.option('--center_image', type=bool, is_flag=True)
-@click.option('--en_punctuation', type=bool, is_flag=True)
-@click.option('--katex_image', type=bool, is_flag=True)
-def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_image: bool):
+@click.option('--output', '-o', type=str, required=True, help='Output file path')
+@click.option('--force', type=bool, is_flag=True, help='Force to save')
+@click.option('--center_image', type=bool, is_flag=True, help='Make images center')
+@click.option('--en_punctuation', type=bool, is_flag=True, help='Use English punctuations')
+@click.option('--katex_image', type=bool, is_flag=True, help='Use image for katex equation')
+@click.option('--add_toc', type=bool, is_flag=True, help='Add table of content')
+def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_image: bool, add_toc: bool):
     """
     Generate markdown by options.
     """
@@ -29,11 +30,11 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
     # read file
     # =========
     if input_file == '':
-        raise Exception('The input file name could not be empty.')
+        raise CommandException('The input file name could not be empty.')
     elif not path.exists(input_file):
-        raise Exception('The input file "{}" does not exist.'.format(input_file))
+        raise CommandException('The input file "{}" does not exist.'.format(input_file))
     elif not path.isfile(input_file):
-        raise Exception('The input file "{}" is a directory.'.format(input_file))
+        raise CommandException('The input file "{}" is a directory.'.format(input_file))
     with open(input_file, 'r', encoding='utf-8') as fi:
         content = fi.read()
 
@@ -46,30 +47,42 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
     content = center_image_option.parse(content)
 
     # 2. english punctuation
-    en_punctuation_option = option.EnPunctuation(en_punctuation)
+    en_punctuation_option = option.EnPunctuationOption(en_punctuation)
     content = en_punctuation_option.parse(content)
 
     # 3. katex image
     katex_image_option = option.KatexImageOption(katex_image)
     content = katex_image_option.parse(content)
 
+    # 4. add toc
+    add_toc_option = option.AddTocOption(add_toc)
+    content = add_toc_option.parse(content)
+
     # ==========
     # write file
     # ==========
     if output == '':
-        raise Exception('The output file name could not be empty.')
+        raise CommandException('The output file name could not be empty.')
     elif path.exists(output):
         if not path.isfile(output):
-            raise Exception('The output file "{}" is a directory.'.format(output))
+            raise CommandException('The output file "{}" is a directory.'.format(output))
         elif not force:
-            raise Exception('The output file "{}" has been existed, please rename or use --force flag.'.format(output))
+            raise CommandException('The output file "{}" has been existed, please rename or use --force flag.'.format(output))
     with open(output, 'w+', encoding='utf-8') as fo:
         fo.write(content)
+
+
+class CommandException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
 
 
 if __name__ == '__main__':
     try:
         main()
-    except Exception as ex:
-        click.echo('Error: {}'.format(ex))
+    except CommandException as ex:
+        click.echo('Error: {}'.format(ex.message))
         exit(1)
+    else:
+        raise ex

@@ -3,4 +3,5 @@ mdg generate test/temp.md \
     --force \
     --center_image \
     --en_punctuation \
-    --katex_image
+    --katex_image \
+    --add_toc

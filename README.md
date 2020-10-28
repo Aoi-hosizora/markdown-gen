@@ -12,11 +12,12 @@ $ mdg generate --help
 #   Generate markdown by options.
 
 # Options:
-#   -o, --output TEXT  [required]
-#   --force
-#   --center_image
-#   --en_punctuation
-#   --katex_image
+#   -o, --output TEXT  Output file path  [required]
+#   --force            Force to save
+#   --center_image     Make images center
+#   --en_punctuation   Use English punctuations
+#   --katex_image      Use image for katex equation
+#   --add_toc          Add table of content
 #   --help             Show this message and exit.
 ```
 
