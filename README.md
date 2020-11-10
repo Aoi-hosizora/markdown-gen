@@ -2,6 +2,26 @@
 
 + A command line tool that can generate markdown using some options.
 
+### Dependencies
+
++ [md-toc](https://pypi.org/project/md-toc/)
+
+### Install
+
++ Linux
+
+```bash
+sudo pip3 install md-toc
+chmod +x cli.py
+sudo ln -s /usr/bin/mdg /xxx/cli.py
+```
+
++ Windows
+
+```bash
+# waiting...
+```
+
 ### Usage
 
 ```bash
@@ -19,21 +39,6 @@ $ mdg generate --help
 #   --katex_image      Use image for katex equation
 #   --add_toc          Add table of content
 #   --help             Show this message and exit.
-```
-
-### Install
-
-+ Linux
-
-```bash
-chmod +x cli.py
-sudo ln -s /usr/bin/mdg /xxx/cli.py
-```
-
-+ Windows
-
-```bash
-# waiting...
 ```
 
 ### Reference
