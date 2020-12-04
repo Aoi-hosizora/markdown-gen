@@ -2,7 +2,7 @@
 
 ![test image1](./temp.png)
 
-![test image2](./temp.png)
+![test image2](./temp2.png)
 
 ![test image3](./temp.png)
 

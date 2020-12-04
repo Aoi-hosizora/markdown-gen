@@ -22,7 +22,15 @@ def main():
 @click.option('--en_punctuation', type=bool, is_flag=True, help='Use English punctuations')
 @click.option('--katex_image', type=bool, is_flag=True, help='Use image for katex equation')
 @click.option('--add_toc', type=bool, is_flag=True, help='Add table of content')
-def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_image: bool, add_toc: bool):
+@click.option('--upload_image', type=bool, is_flag=True, help='Upload local image to github')
+def generate(
+    input_file: str, output: str, force: bool, 
+    center_image: bool, 
+    en_punctuation: bool, 
+    katex_image: bool, 
+    add_toc: bool, 
+    upload_image: bool,
+):
     """
     Generate markdown by options.
     """
@@ -57,6 +65,10 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
     # 4. add toc
     add_toc_option = option.AddTocOption(add_toc)
     content = add_toc_option.parse(content)
+
+    # 5. upload image
+    upload_image_option = option.UploadImageOption(upload_image)
+    content = upload_image_option.parse(content)
 
     # ==========
     # write file

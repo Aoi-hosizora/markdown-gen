@@ -1,7 +1,9 @@
 import re
+import time
 import urllib.parse
 import md_toc
 import utils
+from config import ISSUE_URL
 
 
 class CenterImageOption:
@@ -105,6 +107,7 @@ class KatexImageOption:
 
         return content
 
+
 class AddTocOption:
     """
     Option for --add_toc
@@ -119,4 +122,36 @@ class AddTocOption:
             toc = utils.build_toc(new_content)
             content = '# TOC\n\n' + toc + '\n' + content
 
+        return content
+
+
+class UploadImageOption:
+    """
+    Option for --update_image
+    """
+
+    def __init__(self, do_option: bool):
+        self.do_option = not not do_option
+
+    def parse(self, content: str) -> str:
+        if self.do_option:
+            center_image_re_1 = re.compile(r'!\[.*?\]\((.+?)\)')
+            center_image_re_2 = re.compile(r'<img src="(.*?)"')
+        
+            # find
+            images = center_image_re_1.findall(content)
+            images.extend(center_image_re_2.findall(content))
+            images = list(set(images))
+            print(images)
+
+            # upload
+            for idx, image in enumerate(images):
+                time.sleep(1)
+                print('Uploading {} to {}...'.format(image, ISSUE_URL))
+                images[idx] += ''
+
+            # rewrite
+            for image in images:
+                content = center_image_re_1.sub(r'![\1](' + image + ')', content)
+                content = center_image_re_2.sub(r'<img src="' + image + '"', content)
         return content
