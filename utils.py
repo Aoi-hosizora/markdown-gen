@@ -1,6 +1,10 @@
 from md_toc import *
 
+
 def build_toc(content: str) -> str:
+    """
+    Add toc to given content.
+    """
     ordered = False
     no_links = False
     no_indentation = False

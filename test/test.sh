@@ -4,4 +4,5 @@ mdg generate test/temp.md \
     --center_image \
     --en_punctuation \
     --katex_image \
-    --add_toc
+    --add_toc \
+    --copy_image

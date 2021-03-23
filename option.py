@@ -1,4 +1,8 @@
+import filecmp
+import os
+from os import path
 import re
+import shutil
 import urllib.parse
 import md_toc
 import utils
@@ -105,6 +109,7 @@ class KatexImageOption:
 
         return content
 
+
 class AddTocOption:
     """
     Option for --add_toc
@@ -112,11 +117,66 @@ class AddTocOption:
 
     def __init__(self, do_option: bool):
         self.do_option = not not do_option
-    
+
     def parse(self, content: str) -> str:
         if self.do_option:
             new_content = '# TOC\n\n' + content
             toc = utils.build_toc(new_content)
             content = '# TOC\n\n' + toc + '\n' + content
+
+        return content
+
+
+class CopyImageOption:
+    """
+    Option for --copy_image
+    """
+
+    def __init__(self, do_option: bool):
+        self.do_option = not not do_option
+
+    def parse(self, filename: str, content: str) -> str:
+        if self.do_option:
+            image_re1 = re.compile(r'!\[(.*?)\]\((.+?)\)')
+            image_re2 = re.compile(r'<img(.*?)src="(.*?)"(.*?)>')
+            image_paths = [i[1] for i in image_re1.findall(content)]
+            image_paths.extend([i[1] for i in image_re2.findall(content)])
+
+            # get absolute paths
+            current_folder = path.dirname(path.abspath(filename))
+            path_kv = {}
+            for image_path in image_paths:
+                abs_path = image_path.replace("%20", " ")
+                if not path.isabs(abs_path):
+                    abs_path = path.normpath(path.join(current_folder, abs_path))
+                path_kv[image_path] = abs_path
+
+            # check and copy images
+            for k, v in path_kv.items():
+                if not v.startswith(f'{current_folder}/') and path.exists(v):  # not sub folder and exist
+                    new_path = '{}/images/{}'.format(current_folder, path.basename(v))
+                    while path.exists(new_path) and filecmp.cmp(v, new_path) != True:  # conflict
+                        new_path_sp = path.splitext(new_path)
+                        new_path = new_path_sp[0] + '_' + new_path_sp[1]  # name_____ext
+                    if not path.exists(new_path):  # copy image
+                        new_path_dir = path.dirname(new_path)
+                        if not path.exists(new_path_dir):
+                            os.makedirs(new_path_dir)
+                        shutil.copy(v, new_path)
+                    path_kv[k] = new_path  # new image filename
+
+            # get relative paths
+            for k, v in path_kv.items():
+                v = './{}'.format(path.relpath(v, start=current_folder))
+                v = v.replace(' ', '%20')
+                path_kv[k] = v
+
+            # write to content
+            content_parts = image_re1.findall(content)
+            for part in content_parts:
+                content = content.replace('![{}]({})'.format(part[0], part[1]), '![{}]({})'.format(part[0], path_kv[part[1]]))
+            content_parts = image_re2.findall(content)
+            for part in content_parts:
+                content = content.replace('<img{}src="{}"{}>'.format(part[0], part[1], part[2]), '<img{}src="{}"{}>'.format(part[0], path_kv[part[1]], part[2]))
 
         return content

@@ -1,10 +1,14 @@
 # temp
 
-![test image1](./temp.png)
+![test image1](./temp.png) <img src="./temp.png" />
 
-![test image2](./temp.png)
+![test image2](./temp/temp.png) <img src="./temp/temp.png" />
 
-![test image3](./temp.png)
+![test image3](./temp%20copy.png) <img src="./temp%20copy.png" />
+
+![test image4](../test2/temp.png) <img src="../test2/temp.png" />
+
+![test image5](../test2/temp%20copy.png) <img src="../test2/temp%20copy.png" />
 
     测试，测试。测试、测试：测试；测试？测试！测试——   $x$
 

@@ -16,13 +16,14 @@ def main():
 
 @main.command()
 @click.argument('input_file')
-@click.option('--output', '-o', type=str, required=True, help='Output file path')
-@click.option('--force', type=bool, is_flag=True, help='Force to save')
-@click.option('--center_image', type=bool, is_flag=True, help='Make images center')
-@click.option('--en_punctuation', type=bool, is_flag=True, help='Use English punctuations')
-@click.option('--katex_image', type=bool, is_flag=True, help='Use image for katex equation')
-@click.option('--add_toc', type=bool, is_flag=True, help='Add table of content')
-def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_image: bool, add_toc: bool):
+@click.option('--output', '-o',   type=str, required=True, help='Output file path.')
+@click.option('--force',          type=bool, is_flag=True, help='Force to save.')
+@click.option('--center_image',   type=bool, is_flag=True, help='Make images center.')
+@click.option('--en_punctuation', type=bool, is_flag=True, help='Use English punctuations.')
+@click.option('--katex_image',    type=bool, is_flag=True, help='Use image for katex equation.')
+@click.option('--add_toc',        type=bool, is_flag=True, help='Add table of content.')
+@click.option('--copy_image',     type=bool, is_flag=True, help='Copy image to current folder.')
+def generate(input_file: str, output: str, force: bool, center_image: bool, en_punctuation: bool, katex_image: bool, add_toc: bool, copy_image: bool):
     """
     Generate markdown by options.
     """
@@ -38,9 +39,9 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
     with open(input_file, 'r', encoding='utf-8') as fi:
         content = fi.read()
 
-    # ===============
-    # do option parse
-    # ===============
+    # ============
+    # parse option
+    # ============
 
     # 1. center image
     center_image_option = option.CenterImageOption(center_image)
@@ -58,6 +59,10 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
     add_toc_option = option.AddTocOption(add_toc)
     content = add_toc_option.parse(content)
 
+    # 5. copy image
+    copy_image_option = option.CopyImageOption(copy_image)
+    content = copy_image_option.parse(input_file, content)
+
     # ==========
     # write file
     # ==========
@@ -73,6 +78,10 @@ def generate(input_file: str, output: str, force: bool, center_image: bool, en_p
 
 
 class CommandException(Exception):
+    """
+    Represent an command exception.
+    """
+
     def __init__(self, message):
         super().__init__(message)
         self.message = message
